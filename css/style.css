@@ -1,0 +1,823 @@
+/* ==========================================================================
+   منصة المكتبة الأثرية والتراثية - التصميم المتجاوب وهوية الكتب التراثية
+   ========================================================================== */
+:root {
+  --bg-primary: #FAF6EE;
+  --bg-secondary: #F2EAD9;
+  --bg-card: #FFFFFF;
+  --bg-header: rgba(250, 246, 238, 0.96);
+  --text-primary: #1E1B18;
+  --text-secondary: #5C5346;
+  --text-muted: #847764;
+  --accent-primary: #1B4332;
+  --accent-secondary: #B68D40;
+  --accent-red: #8B261D;
+  --border-color: #E2D6C1;
+  --highlight-bg: rgba(182, 141, 64, 0.18);
+  --ayah-bg: #F6F0E2;
+  --diagram-bg: #FDFBF7;
+  --shadow-sm: 0 2px 8px rgba(30, 27, 24, 0.06);
+  --shadow-md: 0 8px 24px rgba(30, 27, 24, 0.12);
+  --reading-font-size: 1.32rem;
+  --reading-line-height: 2.05;
+  --reading-max-width: 820px;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #121619;
+  --bg-secondary: #1A2026;
+  --bg-card: #1F262D;
+  --bg-header: rgba(18, 22, 25, 0.96);
+  --text-primary: #E8E3D9;
+  --text-secondary: #B8B0A2;
+  --text-muted: #8A8275;
+  --accent-primary: #52B788;
+  --accent-secondary: #D4AF37;
+  --accent-red: #E07A5F;
+  --border-color: #2D3740;
+  --highlight-bg: rgba(212, 175, 55, 0.22);
+  --ayah-bg: #18221F;
+  --diagram-bg: #171C21;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="sepia"] {
+  --bg-primary: #F1E4C8;
+  --bg-secondary: #E6D5B1;
+  --bg-card: #F7ECD5;
+  --bg-header: rgba(241, 228, 200, 0.96);
+  --text-primary: #2B2118;
+  --text-secondary: #5A4634;
+  --text-muted: #7D6752;
+  --accent-primary: #2D4F3E;
+  --accent-secondary: #9C7127;
+  --accent-red: #7E281F;
+  --border-color: #D3C09A;
+  --highlight-bg: rgba(156, 113, 39, 0.22);
+  --ayah-bg: #EADAC0;
+  --diagram-bg: #F6EAD3;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  direction: rtl;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Tajawal', system-ui, -apple-system, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* شريط التقدم العلوي */
+.reading-progress-track {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: var(--border-color);
+  z-index: 1200;
+}
+
+.reading-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+  transition: width 0.15s ease-out;
+}
+
+/* الهيدر العلوي القابل للطي */
+.site-header {
+  position: sticky;
+  top: 4px;
+  z-index: 1000;
+  background: var(--bg-header);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.site-header.header-collapsed {
+  transform: translateY(-110%);
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  width: 100%;
+}
+
+/* زر استعادة الهيدر العائم عند الإخفاء */
+.restore-header-fab {
+  position: fixed;
+  top: 12px;
+  left: 16px;
+  z-index: 1150;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-secondary);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.restore-header-fab.visible {
+  display: inline-flex;
+}
+
+.brand-area {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* مكان الشعار (Logo Placeholder) */
+.logo-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.logo-emblem {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent-primary), #102A20);
+  border: 2px solid var(--accent-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FAF6EE;
+  font-family: 'Amiri', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  font-family: 'Amiri', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* أزرار التحكم في الهيدر */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.btn-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.42rem 0.75rem;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-tool:hover {
+  border-color: var(--accent-secondary);
+  background: var(--bg-secondary);
+}
+
+.btn-tool.btn-primary-gold {
+  background: linear-gradient(135deg, var(--accent-primary), #123023);
+  color: #FAF6EE;
+  border-color: var(--accent-secondary);
+}
+
+.btn-tool.btn-primary-gold:hover {
+  filter: brightness(1.1);
+}
+
+/* شريط استئناف القراءة الذكي (LocalStorage Resume Banner) */
+.resume-banner {
+  background: var(--bg-secondary);
+  border-bottom: 2px solid var(--accent-secondary);
+  padding: 0.65rem 1.25rem;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.resume-banner.active {
+  display: flex;
+}
+
+.resume-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.resume-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* القائمة الجانبية القابلة للطي (Off-canvas Sidebar) */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1050;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.sidebar-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.offcanvas-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 340px;
+  max-width: 88vw;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-color);
+  z-index: 1100;
+  transform: translateX(102%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+}
+
+.offcanvas-sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+}
+
+.sidebar-title {
+  font-family: 'Amiri', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.sidebar-search-box {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-search-input {
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.88rem;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.85rem 1rem;
+}
+
+.toc-group {
+  margin-bottom: 0.85rem;
+}
+
+.toc-chapter-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: background 0.18s;
+}
+
+.toc-chapter-link:hover,
+.toc-chapter-link.active {
+  background: var(--highlight-bg);
+  color: var(--accent-primary);
+}
+
+.toc-sublist {
+  list-style: none;
+  padding-right: 0.9rem;
+  margin-top: 0.25rem;
+  border-right: 2px solid var(--border-color);
+}
+
+.toc-sublink {
+  display: block;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.toc-sublink:hover,
+.toc-sublink.active {
+  color: var(--accent-primary);
+  background: var(--bg-secondary);
+  font-weight: 600;
+}
+
+/* مساحة القراءة الواسعة والمريحة للعين */
+.reading-workspace {
+  max-width: var(--reading-max-width);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 5rem;
+}
+
+/* بطاقة غلاف الكتاب ومعلومات الأرشفة (SEO Book Header) */
+.book-hero-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2.25rem 2rem;
+  margin-bottom: 2.25rem;
+  text-align: center;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  background-image: radial-gradient(circle at top right, var(--highlight-bg), transparent 60%);
+}
+
+.book-ornament-top {
+  color: var(--accent-secondary);
+  font-family: 'Amiri', serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+}
+
+.book-main-title {
+  font-family: 'Amiri', 'Traditional Arabic', serif;
+  font-size: 2.35rem;
+  color: var(--accent-primary);
+  line-height: 1.45;
+  margin-bottom: 0.75rem;
+}
+
+.book-author-line {
+  font-family: 'Amiri', serif;
+  font-size: 1.3rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.book-meta-badges {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.meta-pill {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+}
+
+/* المشجرات التوضيحية التفاعلية (Interactive Heritage Diagrams) */
+.diagram-box {
+  background: var(--diagram-bg);
+  border: 1px solid var(--accent-secondary);
+  border-radius: 14px;
+  padding: 1.35rem 1.25rem;
+  margin: 1.75rem 0 2.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.diagram-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.diagram-title {
+  font-family: 'Amiri', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* التنبيه الإلزامي للمشجرات */
+.diagram-disclaimer {
+  background: var(--highlight-bg);
+  border-right: 4px solid var(--accent-secondary);
+  color: var(--text-primary);
+  padding: 0.55rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* تصميم المشجرات الشجرية التفاعلية بـ CSS/SVG */
+.tree-diagram-container {
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem;
+}
+
+.heritage-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 580px;
+}
+
+.tree-root-node {
+  background: linear-gradient(135deg, var(--accent-primary), #123023);
+  color: #FAF6EE;
+  border: 2px solid var(--accent-secondary);
+  padding: 0.65rem 1.4rem;
+  border-radius: 10px;
+  font-family: 'Amiri', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  position: relative;
+}
+
+.tree-stem-vertical {
+  width: 2px;
+  height: 22px;
+  background: var(--accent-secondary);
+}
+
+.tree-branches-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  position: relative;
+  padding-top: 14px;
+  border-top: 2px solid var(--accent-secondary);
+}
+
+.tree-branch-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-top: 3px solid var(--accent-primary);
+  border-radius: 10px;
+  padding: 0.75rem;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.tree-branch-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-secondary);
+}
+
+.branch-card-title {
+  font-family: 'Amiri', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  line-height: 1.35;
+}
+
+.branch-card-items {
+  list-style: none;
+  font-size: 0.79rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.branch-card-items li::before {
+  content: "◈ ";
+  color: var(--accent-secondary);
+}
+
+/* تنسيق نصوص الكتاب التراثية بالحرف */
+.book-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 2.25rem 2.25rem;
+  margin-bottom: 2.25rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.page-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.chapter-heading {
+  font-family: 'Amiri', 'Traditional Arabic', serif;
+  font-size: 1.85rem;
+  color: var(--accent-primary);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.65rem;
+  margin-bottom: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sub-heading {
+  font-family: 'Amiri', 'Traditional Arabic', serif;
+  font-size: 1.5rem;
+  color: var(--accent-red);
+  margin: 1.75rem 0 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.minor-heading {
+  font-family: 'Amiri', 'Traditional Arabic', serif;
+  font-size: 1.32rem;
+  color: var(--accent-primary);
+  margin: 1.4rem 0 0.7rem;
+}
+
+.book-paragraph {
+  font-family: 'Amiri', 'Traditional Arabic', serif;
+  font-size: var(--reading-font-size);
+  line-height: var(--reading-line-height);
+  color: var(--text-primary);
+  text-align: justify;
+  margin-bottom: 1.15rem;
+  position: relative;
+  padding-right: 0.25rem;
+  border-radius: 6px;
+  transition: background-color 0.25s ease;
+}
+
+.book-paragraph.bookmarked-para {
+  background-color: var(--highlight-bg);
+  padding: 0.5rem 0.75rem;
+  border-right: 3px solid var(--accent-secondary);
+}
+
+.term-red {
+  color: var(--accent-red);
+  font-weight: 700;
+}
+
+.quran-ayah {
+  font-family: 'Amiri Quran', 'Amiri', 'Traditional Arabic', serif;
+  background: var(--ayah-bg);
+  color: var(--accent-primary);
+  padding: 0.12rem 0.45rem;
+  border-radius: 6px;
+  font-weight: 700;
+  border: 1px solid var(--border-color);
+}
+
+.hadith-quote {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+/* الحواشي السفلية المطابقة للكتاب */
+.footnotes-box {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  font-family: 'Amiri', serif;
+  font-size: 0.98rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+.footnote-item {
+  margin-bottom: 0.25rem;
+}
+
+.fn-ref {
+  color: var(--accent-red);
+  font-size: 0.85em;
+  font-weight: 700;
+  vertical-align: super;
+  margin: 0 2px;
+}
+
+/* أزرار الإجراءات السريعة على الفقرات (حفظ المكان + نسخ رابط SEO) */
+.para-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 0.5rem;
+  opacity: 0.45;
+  transition: opacity 0.2s;
+  vertical-align: middle;
+}
+
+.book-paragraph:hover .para-actions,
+.chapter-heading:hover .para-actions,
+.sub-heading:hover .para-actions {
+  opacity: 1;
+}
+
+.btn-micro {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 5px;
+  padding: 0.12rem 0.42rem;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.btn-micro:hover {
+  border-color: var(--accent-secondary);
+  color: var(--accent-primary);
+}
+
+/* لوحة شرح خطة معالجة الكتاب والـ SEO (Architecture & Pipeline Modal/Drawer) */
+.pipeline-panel {
+  background: var(--bg-card);
+  border: 2px solid var(--accent-primary);
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-bottom: 2.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.pipeline-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.pipeline-tab {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pipeline-tab.active {
+  background: var(--accent-primary);
+  color: #FAF6EE;
+  border-color: var(--accent-primary);
+}
+
+.pipeline-content {
+  display: none;
+  font-size: 0.94rem;
+  line-height: 1.8;
+}
+
+.pipeline-content.active {
+  display: block;
+}
+
+/* إشعار Toast عائم بديل لـ alert() */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1300;
+  background: var(--accent-primary);
+  color: #FAF6EE;
+  border: 1px solid var(--accent-secondary);
+  padding: 0.7rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  transform: translateY(120%);
+  opacity: 0;
+  transition: all 0.28s ease;
+}
+
+.toast-notification.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .book-main-title {
+    font-size: 1.75rem;
+  }
+  .book-section {
+    padding: 1.4rem 1.15rem;
+  }
+  .chapter-heading {
+    font-size: 1.45rem;
+  }
+  .sub-heading {
+    font-size: 1.25rem;
+  }
+  .heritage-tree {
+    min-width: 480px;
+  }
+}
