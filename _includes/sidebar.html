@@ -1,0 +1,24 @@
+{%- comment -%}
+  يُستدعى هذا الـ include من داخل layout الكتاب/الفصل فقط.
+  يبني الفهرس تلقائياً من مجموعة books التي تحمل نفس book_slug،
+  مرتّبة حسب حقل order في الـ front matter.
+{%- endcomment -%}
+{%- assign chapters = site.books | where: "book_slug", page.book_slug | where: "layout", "chapter" | sort: "order" -%}
+
+<aside class="sidebar" id="book-sidebar">
+  <h2>فهرس الكتاب</h2>
+  <ul class="toc-list">
+    <li>
+      <a href="{{ page.book_url | relative_url }}" {% if page.layout == "book" %}class="active"{% endif %}>
+        صفحة الكتاب الرئيسية
+      </a>
+    </li>
+    {% for ch in chapters %}
+    <li>
+      <a href="{{ ch.url | relative_url }}" {% if page.url == ch.url %}class="active"{% endif %}>
+        {{ ch.title }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</aside>

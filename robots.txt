@@ -1,4 +1,7 @@
+---
+# front matter فارغ مطلوب لكي يعالج Jekyll المتغيرات في هذا الملف
+---
 User-agent: *
 Allow: /
 
-Sitemap: https://username.github.io/turath-library/sitemap.xml
+Sitemap: {{ "/sitemap.xml" | absolute_url }}

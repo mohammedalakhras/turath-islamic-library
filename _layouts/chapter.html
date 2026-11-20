@@ -1,0 +1,46 @@
+---
+layout: default
+---
+{%- assign chapters = site.books | where: "book_slug", page.book_slug | where: "layout", "chapter" | sort: "order" -%}
+{%- assign chapter_index = -1 -%}
+{%- for ch in chapters -%}
+  {%- if ch.url == page.url -%}{%- assign chapter_index = forloop.index0 -%}{%- endif -%}
+{%- endfor -%}
+{%- assign prev_chapter = nil -%}
+{%- assign next_chapter = nil -%}
+{%- if chapter_index > 0 -%}{%- assign prev_chapter = chapters[chapter_index | minus: 1] -%}{%- endif -%}
+{%- assign next_index = chapter_index | plus: 1 -%}
+{%- if next_index < chapters.size -%}{%- assign next_chapter = chapters[next_index] -%}{%- endif -%}
+
+<div class="layout container">
+  <div class="content">
+    <article class="reading-column">
+      <nav class="breadcrumbs" aria-label="مسار التصفح">
+        <a href="{{ "/" | relative_url }}">الرئيسية</a> ·
+        <a href="{{ page.book_url | relative_url }}">{{ page.book_title }}</a> ·
+        <span>{{ page.title }}</span>
+      </nav>
+
+      <h1 class="page-title chapter-title">{{ page.title }}</h1>
+
+      <div class="book-text">
+        {{ content }}
+      </div>
+
+      <nav class="chapter-nav" aria-label="تنقّل بين الفصول">
+        {% if prev_chapter %}
+        <a href="{{ prev_chapter.url | relative_url }}">
+          <span class="label">الفصل السابق</span>{{ prev_chapter.title }}
+        </a>
+        {% else %}<span></span>{% endif %}
+        {% if next_chapter %}
+        <a href="{{ next_chapter.url | relative_url }}" style="text-align:left;">
+          <span class="label">الفصل التالي</span>{{ next_chapter.title }}
+        </a>
+        {% else %}<span></span>{% endif %}
+      </nav>
+    </article>
+  </div>
+
+  {% include sidebar.html %}
+</div>

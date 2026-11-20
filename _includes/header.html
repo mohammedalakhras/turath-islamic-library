@@ -1,0 +1,24 @@
+<header class="site-header">
+  <a class="brand" href="{{ "/" | relative_url }}">
+    <span class="logo-slot" aria-hidden="true">
+      {%- comment -%} ضع شعارك هنا لاحقاً: استبدل هذا الحرف بـ <img src="/assets/img/logo.svg"> {%- endcomment -%}
+      ت
+    </span>
+    <span>
+      {{ site.title }}
+      <small>{{ site.tagline }}</small>
+    </span>
+  </a>
+
+  <div class="header-spacer"></div>
+
+  <button id="theme-toggle" class="icon-btn" type="button" aria-pressed="false" aria-label="تبديل الوضع الليلي">
+    🌙
+  </button>
+
+  {% if page.layout == "chapter" or page.layout == "book" %}
+  <button id="sidebar-toggle" class="icon-btn" type="button" aria-label="فتح فهرس الكتاب" aria-controls="book-sidebar">
+    ☰
+  </button>
+  {% endif %}
+</header>

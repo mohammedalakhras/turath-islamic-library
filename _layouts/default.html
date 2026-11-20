@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#16423C">
+
+  {% seo %}
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ "/feed.xml" | relative_url }}">
+  <link rel="icon" href="{{ "/assets/img/favicon.svg" | relative_url }}">
+  <link rel="stylesheet" href="{{ "/assets/css/style.css" | relative_url }}">
+
+  <!-- بيانات منظّمة لمحركات البحث: مقتطفات غنية لصفحات الكتب -->
+  {% if page.layout == "book" %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Book",
+    "name": "{{ page.title | escape }}",
+    "author": { "@type": "Person", "name": "{{ page.book.author | default: "" | escape }}" },
+    "bookFormat": "https://schema.org/EBook",
+    "inLanguage": "ar",
+    "url": "{{ page.url | absolute_url }}",
+    "description": "{{ page.book.summary | default: page.summary | strip_html | truncate: 300 | escape }}"
+  }
+  </script>
+  {% endif %}
+  {% if page.layout == "chapter" %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Chapter",
+    "name": "{{ page.title | escape }}",
+    "isPartOf": { "@type": "Book", "name": "{{ page.book_title | default: "" | escape }}" },
+    "url": "{{ page.url | absolute_url }}",
+    "inLanguage": "ar"
+  }
+  </script>
+  {% endif %}
+</head>
+<body data-book-slug="{{ page.book_slug | default: "" }}" data-page-type="{{ page.layout }}">
+
+  <div id="progress-bar" class="progress-bar" aria-hidden="true"></div>
+  {% include header.html %}
+  <div class="sidebar-overlay"></div>
+
+  <main>
+    {{ content }}
+  </main>
+
+  {% include footer.html %}
+
+  <!-- Mermaid.js لتوليد المشجرات التوضيحية برمجياً -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="{{ "/assets/js/main.js" | relative_url }}"></script>
+</body>
+</html>
