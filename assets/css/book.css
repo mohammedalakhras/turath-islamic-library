@@ -1,6 +1,6 @@
 /* ============================================================
-   خزانة الآثار — صفحات الكتب (book.css) — يُحمّل بعد main.css
-   النسخة 2: مشجرة عمودية تراثية
+   خزانة الأثر — صفحات الكتب (book.css) — النسخة 3
+   طباعة كتابية فاخرة + مشجرات أفكار متعددة المستويات
    ============================================================ */
 
 /* ---------- الترويسة العلوية ---------- */
@@ -11,11 +11,12 @@
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
-.topbar__inner { display: flex; align-items: center; gap: 8px; height: 58px; position: relative; }
+.topbar__inner { display: flex; align-items: center; gap: 6px; height: 58px; position: relative; }
 .crumbs { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; font-size: .88rem; color: var(--muted); white-space: nowrap; overflow: hidden; }
 .crumbs a { color: var(--ink-2); font-weight: 500; }
 .crumbs .cur { color: var(--gold-2); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
-.topbar__actions { display: flex; gap: 4px; align-items: center; margin-inline-start: auto; }
+.topbar__actions { display: flex; gap: 2px; align-items: center; margin-inline-start: auto; }
+.topbar__actions .icon-btn { width: 40px; height: 40px; }
 .aa { font-family: 'Amiri', serif; font-weight: 700; font-size: 1.05rem; line-height: 1; }
 #read-progress {
   position: absolute; bottom: -1px; inset-inline-start: 0; height: 3px; width: 0;
@@ -24,7 +25,7 @@
 
 /* ---------- الفهرس الجانبي ---------- */
 .drawer {
-  position: fixed; top: 0; bottom: 0; right: 0; width: min(380px, 88vw);
+  position: fixed; top: 0; bottom: 0; right: 0; width: min(390px, 88vw);
   background: var(--surface); border-inline-start: 1px solid var(--line-2);
   box-shadow: var(--shadow); z-index: 100; display: flex; flex-direction: column;
   transform: translateX(105%); transition: transform .28s ease;
@@ -37,18 +38,39 @@
 .backdrop.is-shown { opacity: 1; pointer-events: auto; }
 body.no-scroll { overflow: hidden; }
 
-/* ---------- الفهرس ---------- */
+/* تصفية الفهرس */
+.toc-filter { position: relative; margin: 0 10px 12px; }
+.toc-filter input {
+  width: 100%; padding: 9px 14px; padding-inline-start: 36px;
+  border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg);
+  font: inherit; font-size: .85rem; color: var(--ink); outline: none;
+}
+.toc-filter input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+.toc-filter svg { position: absolute; inset-inline-start: 11px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--muted); pointer-events: none; }
+
+/* ---------- الفهرس: ترقيم تلقائي + حالة القراءة ---------- */
 .toc { font-size: .95rem; }
 .toc__book { font-family: 'Amiri', serif; font-weight: 700; color: var(--ink); padding: 6px 14px; margin: 0 0 6px; }
 .toc ol, .toc ul { list-style: none; margin: 0; padding: 0; }
-.toc ol > li { border-inline-start: 2px solid transparent; }
+.toc ol { counter-reset: toc; }
+.toc ol > li { counter-increment: toc; border-inline-start: 2px solid transparent; }
+.toc ol > li > a { display: flex; align-items: center; }
+.toc ol > li > a::before {
+  content: counter(toc, arabic-indic);
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 26px; height: 26px; margin-inline-end: 9px;
+  border-radius: 8px; background: var(--emerald-soft); color: var(--emerald);
+  font-size: .74rem; font-weight: 700; font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
 .toc a { display: block; padding: 7px 14px; color: var(--ink-2); border-radius: 8px; line-height: 1.65; }
 .toc a:hover { background: var(--emerald-soft); color: var(--emerald); text-decoration: none; }
 .toc li.is-here { border-inline-start-color: var(--gold); background: var(--gold-soft); }
 .toc li.is-here > a { color: var(--gold-2); font-weight: 700; }
 .toc a.is-active { color: var(--emerald); font-weight: 700; background: var(--emerald-soft); }
+.toc a.is-read::after { content: "✓"; margin-inline-start: auto; color: var(--gold-2); font-weight: 700; font-size: .78rem; }
 .toc ul { padding-inline-start: 20px; }
 .toc ul a { font-size: .87rem; color: var(--muted); padding-block: 5px; }
+.toc .is-hidden, .toc li.is-filtered { display: none; }
 .toc--inline { padding: 6px 4px; }
 
 /* ---------- لوحة الإعدادات ---------- */
@@ -70,38 +92,135 @@ body.no-scroll { overflow: hidden; }
 .stepper output { min-width: 46px; text-align: center; font-size: .84rem; color: var(--ink-2); font-weight: 600; }
 
 /* ---------- منطقة القراءة ---------- */
-.reader { max-width: 780px; margin-inline: auto; padding: clamp(24px, 5vw, 56px) clamp(18px, 4vw, 28px) 80px; }
+[id] { scroll-margin-top: 84px; }
+.reader { max-width: 790px; margin-inline: auto; padding: clamp(24px, 5vw, 56px) clamp(18px, 4vw, 28px) 80px; }
 .reader--wide { max-width: 920px; }
-.chapter-head { text-align: center; margin-bottom: clamp(28px, 5vw, 44px); }
+.chapter-head { text-align: center; margin-bottom: 18px; }
 .chapter-kicker { color: var(--gold-2); font-weight: 600; margin: 0 0 6px; font-size: .95rem; }
 .chapter-title { font-family: 'Amiri', 'Traditional Arabic', serif; font-size: clamp(1.7rem, 4.5vw, 2.5rem); margin: 0; line-height: 1.6; color: var(--emerald); }
+
+/* بطاقة تعريف الكتاب */
+.book-strip {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 18px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 16px; margin: 14px auto 44px; max-width: 640px;
+  font-size: .84rem; color: var(--muted);
+}
+.book-strip b { color: var(--ink-2); font-weight: 600; }
+.book-strip__chip { font-size: .74rem; padding: 3px 12px; border-radius: 99px; background: var(--emerald-soft); color: var(--emerald); font-weight: 700; }
 
 .reader-text {
   font-size: calc(1.14rem * var(--fs-scale));
   line-height: var(--lh);
-  text-align: justify; text-justify: inter-word;
+  text-align: justify; text-justify: inter-word; text-wrap: pretty;
 }
 html[data-justify="off"] .reader-text { text-align: start; }
 html[data-family="amiri"] .reader-text { font-family: 'Amiri', 'Traditional Arabic', serif; font-size: calc(1.28rem * var(--fs-scale)); }
 html[data-family="naskh"] .reader-text { font-family: 'Noto Naskh Arabic', 'Traditional Arabic', serif; }
 html[data-family="scheherazade"] .reader-text { font-family: 'Scheherazade New', 'Traditional Arabic', serif; font-size: calc(1.36rem * var(--fs-scale)); }
-.reader-text p { margin: 0 0 1.1em; }
-.reader-text .text-section { margin-bottom: 2.1em; }
-.text-section h2, .text-section h3 { font-family: 'Amiri', serif; color: var(--emerald); line-height: 1.7; }
-.text-section h2 { font-size: calc(1.42rem * var(--fs-scale)); margin: 1.5em 0 .7em; text-align: center; }
-.text-section h3 { font-size: calc(1.18rem * var(--fs-scale)); margin: 1.3em 0 .6em; }
-.aya { color: var(--emerald); font-weight: 500; }
-.hadith { color: var(--ink); }
+.reader-text p { margin: 0 0 1.15em; }
+.reader-text .text-section { margin-bottom: 2.6em; }
 
-.h-link {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 27px; height: 27px; margin-inline-start: 8px;
-  border: none; background: transparent; color: var(--gold);
-  opacity: 0; cursor: pointer; vertical-align: middle; border-radius: 6px;
+/* العناوين: هرمية ملوّنة */
+.text-section h2, .text-section h3 { font-family: 'Amiri', serif; line-height: 1.7; }
+.text-section h2 {
+  font-size: calc(1.42rem * var(--fs-scale)); margin: 1.9em 0 .9em; text-align: center;
+  color: var(--emerald);
 }
-.text-section:hover .h-link, .h-link:focus-visible { opacity: .85; }
-.h-link:hover { background: var(--gold-soft); opacity: 1; }
-.h-link svg { width: 14px; height: 14px; }
+.text-section h2::after {
+  content: ""; display: block; width: 68px; height: 3px; margin: 12px auto 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  border-radius: 99px;
+}
+.text-section h3 {
+  font-size: calc(1.16rem * var(--fs-scale)); margin: 1.6em 0 .7em; text-align: start;
+  color: var(--gold-2); padding-inline-start: 12px;
+  border-inline-start: 4px solid var(--gold); border-radius: 2px;
+}
+.reader-text ul, .reader-text ol { padding-inline-start: 1.6em; margin: 0 0 1.2em; }
+.reader-text li { margin-bottom: .45em; }
+.reader-text li::marker { color: var(--gold-2); font-weight: 700; }
+.reader-text strong { color: var(--ink); }
+
+/* الآيات: مظللة داخل السرد، ومؤطرة عند الاستقلال */
+.reader-text .aya {
+  color: var(--emerald); font-weight: 600;
+  background: var(--emerald-soft); padding: .08em .3em; border-radius: 6px;
+}
+.aya-block {
+  margin: 1.9em auto; text-align: center; font-family: 'Amiri', 'Traditional Arabic', serif;
+  font-size: calc(1.22rem * var(--fs-scale)); color: var(--emerald); line-height: 2.1;
+  padding: 18px 20px; max-width: 560px; border-block: 2px solid var(--gold); position: relative;
+}
+.aya-block::after {
+  content: "◆"; position: absolute; top: -.72em; left: 50%; transform: translateX(-50%);
+  color: var(--gold); background: var(--bg); padding: 0 10px; font-size: .68rem;
+}
+
+/* الأحاديث */
+.hadith { color: var(--ink); font-weight: 500; }
+.hadith-block {
+  margin: 1.9em 0; padding: 14px 18px;
+  border-inline-start: 4px solid var(--emerald);
+  background: var(--emerald-soft); border-radius: 10px;
+}
+
+/* الأقوال والنقول المنقولة */
+.quote {
+  margin: 1.9em 0; padding: 14px 18px 12px;
+  border-inline-start: 4px solid var(--gold);
+  background: var(--gold-soft); border-radius: 10px;
+}
+.quote p { margin: 0 0 .4em; }
+.quote cite { display: block; text-align: end; font-style: normal; color: var(--gold-2); font-size: .82em; font-weight: 600; }
+
+/* الشعر: صدر وعجز */
+.poetry {
+  margin: 1.9em auto; text-align: center; max-width: 520px;
+  font-family: 'Amiri', serif; font-size: calc(1.1rem * var(--fs-scale)); line-height: 2.2;
+}
+.poetry span { display: block; }
+.poetry span + span { color: var(--ink-2); }
+
+/* الحواشي والمصادر */
+sup.fn { line-height: 0; }
+sup.fn a { color: var(--gold-2); font-weight: 700; text-decoration: none; font-size: .78em; border-bottom: 1px dotted var(--gold); }
+.sources {
+  margin-top: 3.2em; padding-top: 1.4em; border-top: 1px dashed var(--line-2);
+  font-size: .84em; color: var(--muted);
+}
+.sources__t { font-family: 'Amiri', serif; color: var(--gold-2); font-size: 1.15rem; margin: 0 0 .8em; text-align: center; }
+.sources ol { margin: 0; padding-inline-start: 1.5em; display: grid; gap: .5em; line-height: 1.9; }
+.sources li::marker { color: var(--gold-2); font-weight: 700; }
+.sources .back { color: var(--gold); text-decoration: none; margin-inline-start: 6px; }
+
+/* أزرار المشاركة والإشارة على العناوين */
+.h-link, .m-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 27px; height: 27px; margin-inline-start: 6px;
+  border: none; background: transparent; color: var(--gold);
+  opacity: 0; cursor: pointer; vertical-align: middle; border-radius: 7px;
+}
+.text-section:hover .h-link, .text-section:hover .m-btn,
+.h-link:focus-visible, .m-btn:focus-visible, .m-btn.is-on { opacity: .85; }
+.h-link:hover, .m-btn:hover { background: var(--gold-soft); opacity: 1; }
+.m-btn.is-on { opacity: 1; color: var(--gold-2); }
+.m-btn.is-on svg path { fill: currentColor; }
+.h-link svg, .m-btn svg { width: 14px; height: 14px; }
+
+/* إشارة الفقرة: شريط جانبي يظهر عند المرور */
+.reader-text p[id] { position: relative; }
+.p-mark {
+  position: absolute; inset-inline-start: -36px; top: 2px;
+  width: 27px; height: 27px; border: none; background: transparent;
+  color: var(--gold); opacity: 0; cursor: pointer; border-radius: 7px; transition: opacity .15s;
+}
+.reader-text p[id]:hover .p-mark, .p-mark:focus-visible, .p-mark.is-on { opacity: .7; }
+.p-mark:hover { background: var(--gold-soft); opacity: 1; }
+.p-mark.is-on { opacity: 1; color: var(--gold-2); }
+.p-mark.is-on svg path { fill: currentColor; }
+.p-mark svg { width: 15px; height: 15px; }
+@media (max-width: 640px) { .p-mark { inset-inline-start: -6px; top: -16px; } }
 
 /* ---------- التنقل السفلي ---------- */
 .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: clamp(36px, 6vw, 56px); }
@@ -128,16 +247,17 @@ html[data-family="scheherazade"] .reader-text { font-family: 'Scheherazade New',
 .toc-card > h2 { font-family: 'Amiri', serif; text-align: center; margin: 0 0 14px; color: var(--gold-2); }
 
 /* ============================================================
-   المشجرة التوضيحية — نسخة عمودية بأسلوب المشجرات التراثية
-   الجذر في الأعلى، وكل ابن في سطر مستقل، بجذع عمودي ومرافق
+   المشجرة = خريطة أفكار عمودية متعددة المستويات
    ============================================================ */
 .tree-figure {
   margin: clamp(26px, 5vw, 42px) 0;
-  background: var(--surface); background-image: var(--pat);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius); padding: clamp(14px, 3vw, 26px);
   box-shadow: var(--shadow-sm); overflow: hidden;
 }
+.tree-figure--inline { margin: 2.2em auto; max-width: 620px; }
+.tree-figure--inline .tree { --tree-indent: 28px; --tree-gutter: 13px; font-size: .88rem; }
 .tree-note {
   display: flex; gap: 8px; align-items: flex-start;
   background: var(--gold-soft); border: 1px solid var(--line-2);
@@ -150,47 +270,34 @@ html[data-family="scheherazade"] .reader-text { font-family: 'Scheherazade New',
 .tree-tools button:hover { border-color: var(--gold); color: var(--gold-2); }
 
 .tree-scroll { padding-bottom: 4px; }
-
 .tree {
-  /* معايرة المشجرة — عدّل هذه القيم بحرية */
-  --tree-line: var(--line-2);   /* لون الخطوط */
-  --tree-indent: 42px;          /* إزاحة كل مستوى عن أبيه */
-  --tree-gutter: 18px;          /* موضع الجذع داخل مزراب الإزاحة */
-  --tree-elbow-y: 31px;         /* ارتفاع المرفق من أعلى السطر */
-  max-width: 720px;
-  margin-inline: auto;
-  font-size: .93rem;
+  --tree-line: var(--line-2);
+  --tree-indent: 42px;
+  --tree-gutter: 18px;
+  --tree-elbow-y: 31px;
+  max-width: 720px; margin-inline: auto; font-size: .93rem;
 }
 .tree ul { list-style: none; margin: 0; padding: 0; }
 .tree .titem { position: relative; padding-block: 7px; }
 .tree .titem--root { padding-block: 0; }
-
-/* الجذع العمودي في المزراب الأيمن (RTL) — خلف البطاقات */
 .tree .titem::before {
   content: ""; position: absolute; z-index: 0;
   right: calc(-1 * var(--tree-gutter));
-  top: -10px; bottom: -10px;
-  width: 2px; background: var(--tree-line);
+  top: -10px; bottom: -10px; width: 2px; background: var(--tree-line);
 }
-.tree .titem:first-child::before { top: -30px; }                        /* يمتد تحت بطاقة الأب */
+.tree .titem:first-child::before { top: -30px; }
 .tree .titem:last-child::before { bottom: auto; height: calc(var(--tree-elbow-y) + 12px); }
 .tree .titem:only-child::before { top: -30px; bottom: auto; height: calc(var(--tree-elbow-y) + 33px); }
-
-/* المرفق الأفقي من الجذع إلى حافة البطاقة */
 .tree .titem::after {
   content: ""; position: absolute; z-index: 0;
   right: calc(-1 * var(--tree-gutter));
   top: var(--tree-elbow-y);
-  width: var(--tree-gutter); height: 2px;
-  background: var(--tree-line);
+  width: var(--tree-gutter); height: 2px; background: var(--tree-line);
 }
 .tree .titem--root::before, .tree .titem--root::after { display: none; }
-
-/* فروع الأبناء: إزاحة لكل مستوى + حالة الطي */
 .tree .tbranch { margin-inline-start: var(--tree-indent); margin-top: 4px; }
 li.is-collapsed > .tbranch { display: none; }
 
-/* بطاقات العقد */
 .tree__node {
   position: relative; z-index: 2;
   display: flex; align-items: center; gap: 10px;
@@ -198,19 +305,14 @@ li.is-collapsed > .tbranch { display: none; }
   padding: 8px 16px;
   background: var(--surface-2);
   border: 1px solid var(--line-2);
-  border-radius: 12px;
-  line-height: 1.6;
+  border-radius: 12px; line-height: 1.6;
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
-.tree__node:not(.t-root):hover {
-  border-color: var(--gold);
-  transform: translateX(-2px);
-  box-shadow: var(--shadow-sm);
-}
+.tree__node:not(.t-root):hover { border-color: var(--gold); transform: translateX(-2px); box-shadow: var(--shadow-sm); }
 .tree__node a, .tree__node span { color: var(--ink); font-weight: 600; }
 .tree__node a:hover { color: var(--emerald); text-decoration: none; }
 
-/* الجذر: بطاقة بارزة متدرجة */
+/* الجذر */
 .tree__node.t-root {
   justify-content: center; text-align: center; gap: 12px;
   background: linear-gradient(135deg, var(--btn-bg), #0d3125);
@@ -225,22 +327,22 @@ li.is-collapsed > .tbranch { display: none; }
 .tree__node.t-root .tree__caret { color: #c9a962; }
 .tree__node.t-root .tree__caret:hover { background: rgba(201,169,98,.22); color: #f4efdf; }
 
-/* مستوى الفصول */
-.tree__node.t-chapter { border-inline-start: 4px solid var(--emerald); }
+/* تلوين المستويات: d1 زمردي، d2 ذهبي، d3+ متقطع هادئ */
+.tree li.d1 > .tree__node, .tree__node.t-chapter { border-inline-start: 4px solid var(--emerald); background: var(--surface); }
+.tree li.d1 > .tree__node a, .tree li.d1 > .tree__node span,
 .tree__node.t-chapter a { font-family: 'Amiri', serif; color: var(--emerald); font-size: 1.02rem; }
-
-/* مستوى الأقسام الداخلية */
-.tree__node.t-section { border-style: dashed; background: transparent; }
-.tree__node.t-section a, .tree__node.t-section span { font-weight: 500; color: var(--ink-2); }
-
-/* علامة الورقة: معيّن ذهبي صغير */
-.tree__leaf {
-  flex: none; width: 8px; height: 8px;
-  background: var(--gold); transform: rotate(45deg);
-  border-radius: 1.5px; opacity: .9;
+.tree li.d1 .tree__leaf { background: var(--emerald); }
+.tree li.d2 > .tree__node { border-color: var(--gold); }
+.tree li.d2 > .tree__node a, .tree li.d2 > .tree__node span { color: var(--ink); }
+.tree li.d2 .tree__leaf { background: var(--gold); }
+.tree li.d3 > .tree__node, .tree li.d4 > .tree__node, .tree li.d5 > .tree__node {
+  border-style: dashed; background: transparent; min-height: 40px; font-size: .88rem;
 }
+.tree li.d3 > .tree__node a, .tree li.d3 > .tree__node span,
+.tree li.d4 > .tree__node a, .tree li.d4 > .tree__node span { color: var(--ink-2); font-weight: 500; }
+.tree li.d3 .tree__leaf, .tree li.d4 .tree__leaf { background: var(--muted); }
 
-/* زر الطي/التوسيع */
+.tree__leaf { flex: none; width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); border-radius: 1.5px; opacity: .9; }
 .tree__caret {
   flex: none; display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; border: none; border-radius: 8px;
@@ -249,7 +351,6 @@ li.is-collapsed > .tbranch { display: none; }
 .tree__caret:hover { background: var(--gold-soft); color: var(--gold-2); }
 .tree__caret svg { width: 14px; height: 14px; transition: transform .2s ease; }
 li.is-collapsed > .tree__node .tree__caret svg { transform: rotate(-90deg); }
-
 .mermaid { overflow-x: auto; }
 
 /* ---------- زر العودة للأعلى ---------- */
@@ -264,7 +365,6 @@ li.is-collapsed > .tree__node .tree__caret svg { transform: rotate(-90deg); }
 .to-top.is-shown { opacity: 1; pointer-events: auto; transform: none; }
 .to-top svg { width: 20px; height: 20px; }
 
-/* ---------- رأس الطباعة ---------- */
 .print-head { display: none; }
 
 /* ---------- الجوال ---------- */
@@ -280,13 +380,14 @@ li.is-collapsed > .tree__node .tree__caret svg { transform: rotate(-90deg); }
 
 /* ---------- الطباعة ---------- */
 @media print {
-  .topbar, .drawer, .backdrop, .to-top, .toast, .settings, .tree-tools, .pager, .site-foot, .book-actions, .endcard, .skip { display: none !important; }
+  .topbar, .drawer, .backdrop, .to-top, .toast, .settings, .tree-tools, .pager, .site-foot,
+  .book-actions, .endcard, .skip, .p-mark, .m-btn, .h-link, .toc-filter { display: none !important; }
   body { background: #fff; color: #000; }
   .reader { max-width: 100%; padding: 0; }
   .reader-text { font-size: 12.5pt; color: #000; }
   .text-section h2, .text-section h3 { break-after: avoid; color: #000; }
   .chapter-head { break-after: avoid; }
   a { color: #000; text-decoration: none; }
-  .tree-figure { border: none; box-shadow: none; padding: 0; background-image: none; }
+  .tree-figure { border: none; box-shadow: none; padding: 0; }
   .print-head { display: block; text-align: center; font-family: 'Amiri', serif; margin-bottom: 16px; border-bottom: 1px solid #999; padding-bottom: 8px; }
 }

@@ -1,5 +1,6 @@
 /* ============================================================
-   خزانة الآثار — القارئ (reader.js): الفهرس، الحفظ التلقائي، الإعدادات
+   خزانة الأثر — القارئ (reader.js) — النسخة 3
+   الفهرس المصفّى، الحفظ، الإشارات المرجعية، زمن القراءة
    ============================================================ */
 (function () {
   'use strict';
@@ -8,10 +9,12 @@
   var doc = document, el = doc.documentElement;
   var SLUG = el.getAttribute('data-book') || '';
   var PAGE = el.getAttribute('data-page') || '';
+  var BOOK_TITLE = el.getAttribute('data-book-title') || SLUG;
   var prefs = M.store.get(M.keys.prefs, {});
+  var MARK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
 
   function savePref(k, v) { var p = M.store.get(M.keys.prefs, {}); p[k] = v; M.store.set(M.keys.prefs, p); }
-  function toast(msg, actionLabel) {
+  function toast(msg, actionLabel, actionUrl) {
     var t = doc.createElement('div');
     t.className = 'toast';
     t.innerHTML = '<span></span>' + (actionLabel ? '<button type="button"></button>' : '');
@@ -20,14 +23,18 @@
     if (actionLabel) {
       var btn = t.querySelector('button');
       btn.textContent = actionLabel;
-      btn.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); hide(); });
+      btn.addEventListener('click', function () {
+        if (actionUrl) location.href = actionUrl;
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+        hide();
+      });
     }
     doc.body.appendChild(t);
     requestAnimationFrame(function () { t.classList.add('is-in'); });
     setTimeout(hide, 6000);
   }
 
-  /* ---------- 1) الفهرس الجانبي ---------- */
+  /* ---------- 1) الفهرس الجانبي + التصفية ---------- */
   var drawer = doc.getElementById('drawer');
   var backdrop = doc.getElementById('drawer-backdrop');
   var drawerOpenBtn = doc.getElementById('drawer-open');
@@ -52,7 +59,24 @@
   if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', function () { setDrawer(false); if (drawerOpenBtn) drawerOpenBtn.focus(); });
   if (backdrop) backdrop.addEventListener('click', function () { setDrawer(false); });
 
-  /* ---------- 2) لوحة الإعدادات ---------- */
+  var tocFilter = doc.getElementById('toc-filter');
+  if (tocFilter && toc) {
+    tocFilter.addEventListener('input', function () {
+      var q = M.normAr(tocFilter.value.trim());
+      toc.querySelectorAll('a').forEach(function (a) {
+        a.classList.toggle('is-hidden', !!q && M.normAr(a.textContent).indexOf(q) === -1);
+      });
+      var lis = toc.querySelectorAll('li');
+      for (var i = lis.length - 1; i >= 0; i--) {
+        var li = lis[i];
+        var a = li.querySelector(':scope > a');
+        var visChild = li.querySelector(':scope > ul > li:not(.is-filtered)');
+        li.classList.toggle('is-filtered', !!(a && a.classList.contains('is-hidden') && !visChild));
+      }
+    });
+  }
+
+  /* ---------- 2) الإعدادات ---------- */
   var settingsBtn = doc.getElementById('settings-open');
   var settingsPanel = doc.getElementById('settings');
   function setSettings(open) {
@@ -72,11 +96,10 @@
       b.classList.toggle('is-on', b.getAttribute(attr) === val);
     });
   }
-  /* حجم الخط */
   var fsOut = doc.getElementById('fs-value');
   function fsLabel() {
     var v = parseFloat(el.style.getPropertyValue('--fs-scale')) || (prefs.fs || 1);
-    if (fsOut) fsOut.textContent = Math.round(v * 100) + '%';
+    if (fsOut) fsOut.textContent = M.arNum(Math.round(v * 100)) + '%';
   }
   fsLabel();
   doc.querySelectorAll('[data-fs]').forEach(function (b) {
@@ -88,7 +111,6 @@
       savePref('fs', v); fsLabel();
     });
   });
-  /* نوع الخط */
   syncSel('data-family', prefs.family || 'amiri');
   doc.querySelectorAll('[data-family]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -97,7 +119,6 @@
       savePref('family', v); syncSel('data-family', v);
     });
   });
-  /* تباعد الأسطر */
   syncSel('data-lh', String(prefs.lh || 2));
   doc.querySelectorAll('[data-lh]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -106,7 +127,6 @@
       savePref('lh', parseFloat(v)); syncSel('data-lh', v);
     });
   });
-  /* ضبط النص */
   syncSel('data-justify', prefs.justify === false ? 'off' : 'on');
   doc.querySelectorAll('[data-justify]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -116,7 +136,18 @@
     });
   });
 
-  /* ---------- 3) التقدم والحفظ التلقائي (LocalStorage) ---------- */
+  /* ---------- 3) زمن القراءة ---------- */
+  var content = doc.getElementById('content');
+  var readTime = doc.getElementById('read-time');
+  if (content && readTime) {
+    var words = parseInt(content.getAttribute('data-words'), 10);
+    if (words > 0) {
+      readTime.textContent = '≈ ' + M.arNum(Math.max(1, Math.round(words / 160))) + ' دقيقة قراءة';
+      readTime.hidden = false;
+    }
+  }
+
+  /* ---------- 4) التقدم + تسجيل المقروء ---------- */
   var bar = doc.getElementById('read-progress');
   var pageTitle = (function () {
     var a = doc.querySelector('[data-page-title]');
@@ -125,6 +156,23 @@
   var touched = false, ratio = 0, timer = null;
   doc.addEventListener('click', function () { touched = true; }, { once: true });
 
+  var savedEntry = (SLUG && PAGE) ? (M.store.get(M.keys.prog, {})[SLUG] || null) : null;
+  if (SLUG && PAGE) {
+    var all = M.store.get(M.keys.prog, {});
+    var pr = all[SLUG] || {};
+    pr.visited = pr.visited || [];
+    if (pr.visited.indexOf(PAGE) === -1) pr.visited.push(PAGE);
+    pr.page = PAGE; pr.title = pageTitle; pr.ts = Date.now();
+    if (typeof pr.ratio !== 'number') pr.ratio = 0;
+    all[SLUG] = pr;
+    M.store.set(M.keys.prog, all);
+    M.store.set(M.keys.last, SLUG);
+    if (toc) pr.visited.forEach(function (pg) {
+      var a = toc.querySelector('a[href="' + pg + '.html"]');
+      if (a) a.classList.add('is-read');
+    });
+  }
+
   function calcRatio() {
     var max = el.scrollHeight - window.innerHeight;
     return max > 40 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
@@ -132,7 +180,10 @@
   function saveProgress() {
     if (!SLUG || !PAGE || !touched) return;
     var all = M.store.get(M.keys.prog, {});
-    all[SLUG] = { page: PAGE, title: pageTitle, ratio: Math.round(ratio * 1000) / 1000, ts: Date.now() };
+    var pr2 = all[SLUG] || {};
+    pr2.page = PAGE; pr2.title = pageTitle;
+    pr2.ratio = Math.round(ratio * 1000) / 1000; pr2.ts = Date.now();
+    all[SLUG] = pr2;
     M.store.set(M.keys.prog, all);
     M.store.set(M.keys.last, SLUG);
   }
@@ -146,17 +197,16 @@
   window.addEventListener('beforeunload', saveProgress);
   doc.addEventListener('visibilitychange', function () { if (doc.hidden) saveProgress(); });
 
-  /* ---------- 4) استئناف القراءة تلقائياً ---------- */
-  var saved = (SLUG && PAGE) ? (M.store.get(M.keys.prog, {})[SLUG] || null) : null;
-  if (saved && saved.page === PAGE && saved.ratio > 0.04 && saved.ratio < 0.96) {
+  /* ---------- 5) استئناف القراءة ---------- */
+  if (savedEntry && savedEntry.page === PAGE && savedEntry.ratio > 0.04 && savedEntry.ratio < 0.96) {
     var max = el.scrollHeight - window.innerHeight;
-    window.scrollTo(0, Math.round(saved.ratio * max));
-    ratio = saved.ratio;
-    if (bar) bar.style.width = (saved.ratio * 100).toFixed(1) + '%';
+    window.scrollTo(0, Math.round(savedEntry.ratio * max));
+    ratio = savedEntry.ratio;
+    if (bar) bar.style.width = (savedEntry.ratio * 100).toFixed(1) + '%';
     toast('استُؤنفت القراءة من آخر موضع توقفت عنده', 'العودة إلى البداية');
   }
 
-  /* ---------- 5) تتبع الموضع في الفهرس (Scrollspy) ---------- */
+  /* ---------- 6) Scrollspy ---------- */
   var sections = doc.querySelectorAll('[data-spy]');
   if ('IntersectionObserver' in window && sections.length && toc) {
     var io = new IntersectionObserver(function (entries) {
@@ -170,7 +220,8 @@
     sections.forEach(function (s) { io.observe(s); });
   }
 
-  /* ---------- 6) زر نسخ رابط كل موضع (للمشاركة والاقتباس) ---------- */
+  /* ---------- 7) نسخ الرابط + الإشارة المرجعية (على الأقسام) ---------- */
+  function refreshMark(btn, id) { btn.classList.toggle('is-on', M.isMarked(SLUG, PAGE, id)); }
   sections.forEach(function (s) {
     var h = s.querySelector('h2, h3');
     if (!h || !s.id) return;
@@ -186,15 +237,48 @@
       } else toast('النسخ غير مدعوم في هذا المتصفح');
     });
     h.appendChild(btn);
+
+    var mb = doc.createElement('button');
+    mb.type = 'button'; mb.className = 'm-btn';
+    mb.title = 'حفظ إشارة مرجعية لهذا القسم';
+    mb.setAttribute('aria-label', 'حفظ إشارة مرجعية لهذا القسم');
+    mb.innerHTML = MARK_SVG;
+    refreshMark(mb, s.id);
+    mb.addEventListener('click', function () {
+      var label = h.textContent.trim() || pageTitle;
+      var added = M.toggleMark(SLUG, PAGE, s.id, label, BOOK_TITLE);
+      refreshMark(mb, s.id);
+      toast(added ? 'حُفظت إشارة القسم' : 'أُزيلت إشارة القسم', added ? 'عرض إشارتي' : null, added ? M.root + 'bookmarks.html' : null);
+    });
+    h.appendChild(mb);
   });
 
-  /* ---------- 7) اختصارات لوحة المفاتيح ---------- */
+  /* ---------- 8) الإشارة المرجعية على كل فقرة ---------- */
+  doc.querySelectorAll('.reader-text p[id]').forEach(function (p) {
+    var b = doc.createElement('button');
+    b.type = 'button'; b.className = 'p-mark';
+    b.title = 'إشارة مرجعية لهذه الفقرة';
+    b.setAttribute('aria-label', 'إشارة مرجعية لهذه الفقرة');
+    b.innerHTML = MARK_SVG;
+    refreshMark(b, p.id);
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var txt = p.textContent.trim();
+      var label = txt.slice(0, 60) + (txt.length > 60 ? '…' : '');
+      var added = M.toggleMark(SLUG, PAGE, p.id, label, BOOK_TITLE);
+      refreshMark(b, p.id);
+      toast(added ? 'حُفظت إشارة الفقرة' : 'أُزيلت إشارة الفقرة', added ? 'عرض إشارتي' : null, added ? M.root + 'bookmarks.html' : null);
+    });
+    p.appendChild(b);
+  });
+
+  /* ---------- 9) اختصارات ---------- */
   doc.addEventListener('keydown', function (e) {
     if (e.target && e.target.matches && e.target.matches('input, textarea, select')) return;
     if (e.key === 'Escape') { setDrawer(false); setSettings(false); return; }
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     var rel = null;
-    if (e.key === 'ArrowLeft') rel = 'next';   /* في العربية: التقدم جهة اليسار */
+    if (e.key === 'ArrowLeft') rel = 'next';
     if (e.key === 'ArrowRight') rel = 'prev';
     if (rel) {
       var l = doc.querySelector('link[rel="' + rel + '"]');
@@ -202,7 +286,7 @@
     }
   });
 
-  /* ---------- 8) زر العودة للأعلى ---------- */
+  /* ---------- 10) العودة للأعلى ---------- */
   var topBtn = doc.getElementById('to-top');
   if (topBtn) {
     var ticking = false;
@@ -214,10 +298,10 @@
     topBtn.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
   }
 
-  /* ---------- 9) تمييز كلمات البحث القادمة من صفحة البحث ---------- */
+  /* ---------- 11) تمييز كلمات البحث ---------- */
   var q = new URLSearchParams(location.search).get('q');
   if (q) {
-    try { highlightAll(doc.getElementById('content'), M.arabicRegex(q)); } catch (e) {}
+    try { highlightAll(content, M.arabicRegex(q)); } catch (e) {}
   }
   function highlightAll(rootEl, re) {
     if (!rootEl || !re) return;

@@ -1,7 +1,7 @@
 {
-  "siteName": "خزانة الآثار",
+  "siteName": "خزانة الأثر",
   "tagline": "مكتبة رقمية مجانية للكتب الأثرية والتراثية",
-  "siteUrl": "https://USERNAME.github.io/REPO",
+  "siteUrl": "https://mohammedalakhras.github.io/turath-islamic-library",
   "books": [
     {
       "slug": "al-arbaeen-nawawiyya",
@@ -10,26 +10,9 @@
       "description": "متن الأربعون حديثاً بنصوصها كما جمعها الإمام النووي. (كتاب نموذجي توضيحي لبنية الخزانة).",
       "pageCount": 2,
       "pdf": "",
-      "tags": [
-        "حديث",
-        "نموذج تجريبي"
-      ],
+      "cover": "",
+      "tags": ["حديث", "نموذج تجريبي"],
       "added": "2025-01-01"
-    },
-    {
-      "slug": "al-ihtijaj-li-usul-al-islam",
-      "title": "مُذكِّرةٌ في الاحْتِجَاجِ لأُصُولِ الإِسْلَامِ",
-      "author": "عبد القادر بن محمّد أنيس البكّور",
-      "description": "مذكرة جامعة في مصادر المعرفة وأدلة وجود الله وصدق النبوة وحجية السنة النبوية وحفظها.",
-      "pageCount": 7,
-      "pdf": "al-ihtijaj-li-usul-al-islam.pdf",
-      "tags": [
-        "عقيدة",
-        "أصول الإسلام",
-        "البراهين",
-        "حجية السنة"
-      ],
-      "added": "2026-11-20"
     }
   ]
 }

@@ -1,11 +1,11 @@
 /* ============================================================
-   خزانة الآثار — المشجرات التوضيحية (diagrams.js) — نسخة 2
-   مشجرة عمودية تراثية: جذع عمودي + مرافق، كل ابن في سطر مستقل
-   + دعم اختياري لـ Mermaid.js بضبط USE_MERMAID = true
+   خزانة الأثر — المشجرات (diagrams.js) — النسخة 3
+   خريطة أفكار عمودية متعددة المستويات (تلوين حسب العمق)
+   + دعم اختياري لـ Mermaid.js (USE_MERMAID = true)
    ============================================================ */
 (function () {
   'use strict';
-  var USE_MERMAID = false; /* اجعلها true لتوليد المشجرة عبر Mermaid.js من CDN */
+  var USE_MERMAID = false;
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -15,8 +15,6 @@
   function caretSVG() {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
   }
-
-  /* بطاقة العقدة: زر طيّ للأب، ومعيّن ذهبي للورقة */
   function nodeHTML(n) {
     var hasKids = !!(n.children && n.children.length);
     var inner = n.href
@@ -27,25 +25,23 @@
       : '<span class="tree__leaf" aria-hidden="true"></span>';
     return '<div class="tree__node ' + (n.cls ? esc(n.cls) : '') + (hasKids ? ' has-children' : '') + '">' + side + inner + '</div>';
   }
-
-  /* قائمة أبناء عمودية: كل ابن في سطر (<li>) متصل بجذع المزراب */
-  function listHTML(nodes) {
+  /* depth = مستوى العقدة (1 للأبناء المباشرين) — يُستخدم للتلوين الهرمي */
+  function listHTML(nodes, depth) {
     if (!nodes || !nodes.length) return '';
+    var d = depth || 1;
     return '<ul class="tbranch">' + nodes.map(function (n) {
-      return '<li class="titem' + (n.collapsed ? ' is-collapsed' : '') + '">' +
-        nodeHTML(n) + listHTML(n.children) + '</li>';
+      return '<li class="titem d' + d + (n.collapsed ? ' is-collapsed' : '') + '">' +
+        nodeHTML(n) + listHTML(n.children, d + 1) + '</li>';
     }).join('') + '</ul>';
   }
-
   function renderTree(data, host) {
     host.classList.add('tree');
     host.innerHTML =
-      '<ul><li class="titem titem--root">' +
-        nodeHTML(data) + listHTML(data.children) +
+      '<ul><li class="titem titem--root d0">' +
+        nodeHTML(data) + listHTML(data.children, 1) +
       '</li></ul>';
   }
 
-  /* --- محرك Mermaid الاختياري (مع تراجع تلقائي للمحرك الأصيل) --- */
   function mermaidSyntax(data) {
     var out = ['flowchart TD'], seq = 0;
     (function walk(n, parent) {
@@ -78,7 +74,6 @@
     setTimeout(function () { if (!ok) { ok = true; renderTree(data, host); } }, 5000);
   }
 
-  /* --- بناء كل المشجرات الموجودة في الصفحة --- */
   document.querySelectorAll('script[type="application/json"][data-tree]').forEach(function (s) {
     var data;
     try { data = JSON.parse(s.textContent); } catch (e) { return; }
@@ -88,7 +83,6 @@
     renderTree(data, host);
   });
 
-  /* --- تفاعلات: طي/توسيع فرع، توسيع/طي الكل --- */
   document.addEventListener('click', function (e) {
     if (!e.target.closest) return;
     var caret = e.target.closest('.tree__caret');
