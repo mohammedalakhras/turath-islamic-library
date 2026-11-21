@@ -1,6 +1,6 @@
 /* ============================================================
-   خزانة الآثار — المشجرات التوضيحية (diagrams.js)
-   محرك CSS/SVG أصيل (RTL دقيق، يعمل بلا إنترنت وينطبع جيداً)
+   خزانة الآثار — المشجرات التوضيحية (diagrams.js) — نسخة 2
+   مشجرة عمودية تراثية: جذع عمودي + مرافق، كل ابن في سطر مستقل
    + دعم اختياري لـ Mermaid.js بضبط USE_MERMAID = true
    ============================================================ */
 (function () {
@@ -13,27 +13,35 @@
     });
   }
   function caretSVG() {
-    return '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
   }
+
+  /* بطاقة العقدة: زر طيّ للأب، ومعيّن ذهبي للورقة */
   function nodeHTML(n) {
+    var hasKids = !!(n.children && n.children.length);
     var inner = n.href
       ? '<a href="' + esc(n.href) + '">' + esc(n.label) + '</a>'
       : '<span>' + esc(n.label) + '</span>';
-    var caret = (n.children && n.children.length)
+    var side = hasKids
       ? '<button type="button" class="tree__caret" aria-expanded="' + (n.collapsed ? 'false' : 'true') + '" aria-label="طي أو توسيع الفرع">' + caretSVG() + '</button>'
-      : '';
-    return '<div class="tree__node ' + (n.cls ? esc(n.cls) : '') + '">' + inner + caret + '</div>';
+      : '<span class="tree__leaf" aria-hidden="true"></span>';
+    return '<div class="tree__node ' + (n.cls ? esc(n.cls) : '') + (hasKids ? ' has-children' : '') + '">' + side + inner + '</div>';
   }
+
+  /* قائمة أبناء عمودية: كل ابن في سطر (<li>) متصل بجذع المزراب */
   function listHTML(nodes) {
-    return '<ul>' + nodes.map(function (n) {
-      var kids = (n.children && n.children.length) ? listHTML(n.children) : '';
-      return '<li' + (n.collapsed ? ' class="is-collapsed"' : '') + '>' + nodeHTML(n) + kids + '</li>';
+    if (!nodes || !nodes.length) return '';
+    return '<ul class="tbranch">' + nodes.map(function (n) {
+      return '<li class="titem' + (n.collapsed ? ' is-collapsed' : '') + '">' +
+        nodeHTML(n) + listHTML(n.children) + '</li>';
     }).join('') + '</ul>';
   }
+
   function renderTree(data, host) {
     host.classList.add('tree');
-    host.innerHTML = '<ul><li>' + nodeHTML(data) +
-      ((data.children && data.children.length) ? listHTML(data.children) : '') +
+    host.innerHTML =
+      '<ul><li class="titem titem--root">' +
+        nodeHTML(data) + listHTML(data.children) +
       '</li></ul>';
   }
 
