@@ -1,21 +1,32 @@
 /* ============================================================
-   خزانة الأثر — المشجرات (diagrams.js) — النسخة 3
-   خريطة أفكار عمودية متعددة المستويات (تلوين حسب العمق)
-   + دعم اختياري لـ Mermaid.js (USE_MERMAID = true)
+   خزانة الأثر — المشجرات (diagrams.js) — النسخة 4
+   خريطة أفكار أفقية: الجذر يميناً والأغصان تتفرع يساراً،
+   لكل غصنٍ رئيسي لونٌ يورَّث لفروعه — كخرائط الذهن المعهودة.
+   متوافق رجعياً مع كلاسات t-root / t-chapter / t-section.
    ============================================================ */
 (function () {
   'use strict';
-  var USE_MERMAID = false;
+  var USE_MERMAID = false;   /* اجعلها true لتوليد المشجرة عبر Mermaid.js */
+  var BRANCHES = 6;          /* عدد ألوان الأغصان */
+  var seq = 0;               /* تسلسل الظهور المتدرج */
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
+  function arNum(n) { return String(n).replace(/[0-9]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[+d]; }); }
   function caretSVG() {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
   }
-  function nodeHTML(n) {
+  function countNodes(n) {
+    var c = 1;
+    (n.children || []).forEach(function (k) { c += countNodes(k); });
+    return c;
+  }
+
+  /* بطاقة العقدة: زر طيّ للأب، ومعيّن ملوّن للورقة، وظهور متدرج */
+  function nodeHTML(n, depth) {
     var hasKids = !!(n.children && n.children.length);
     var inner = n.href
       ? '<a href="' + esc(n.href) + '">' + esc(n.label) + '</a>'
@@ -23,29 +34,54 @@
     var side = hasKids
       ? '<button type="button" class="tree__caret" aria-expanded="' + (n.collapsed ? 'false' : 'true') + '" aria-label="طي أو توسيع الفرع">' + caretSVG() + '</button>'
       : '<span class="tree__leaf" aria-hidden="true"></span>';
-    return '<div class="tree__node ' + (n.cls ? esc(n.cls) : '') + (hasKids ? ' has-children' : '') + '">' + side + inner + '</div>';
-  }
-  /* depth = مستوى العقدة (1 للأبناء المباشرين) — يُستخدم للتلوين الهرمي */
-  function listHTML(nodes, depth) {
-    if (!nodes || !nodes.length) return '';
-    var d = depth || 1;
-    return '<ul class="tbranch">' + nodes.map(function (n) {
-      return '<li class="titem d' + d + (n.collapsed ? ' is-collapsed' : '') + '">' +
-        nodeHTML(n) + listHTML(n.children, d + 1) + '</li>';
-    }).join('') + '</ul>';
-  }
-  function renderTree(data, host) {
-    host.classList.add('tree');
-    host.innerHTML =
-      '<ul><li class="titem titem--root d0">' +
-        nodeHTML(data) + listHTML(data.children, 1) +
-      '</li></ul>';
+    var delay = ' style="animation-delay:' + Math.min(seq++ * 28, 420) + 'ms"';
+    return '<div class="tree__node d' + depth + (n.cls ? ' ' + esc(n.cls) : '') + (hasKids ? ' has-children' : '') + '"' + delay + '>' + side + inner + '</div>';
   }
 
+  /* قائمة الأبناء: كل ابنٍ صفٌّ، والغصن الرئيسي الأول يأخذ لونه الدائم */
+  function listHTML(nodes, depth) {
+    if (!nodes || !nodes.length) return '';
+    return '<ul class="tbranch">' + nodes.map(function (n, i) {
+      var cls = 'titem d' + depth;
+      if (depth === 1) cls += ' c' + (i % BRANCHES);
+      if (n.collapsed) cls += ' is-collapsed';
+      return '<li class="' + cls + '">' + nodeHTML(n, depth) + listHTML(n.children, depth + 1) + '</li>';
+    }).join('') + '</ul>';
+  }
+
+  function renderTree(data, host) {
+    seq = 0;
+    host.classList.add('tree');
+    host.innerHTML = '<ul class="tree__root"><li class="titem titem--root">' +
+      nodeHTML(data, 0) + listHTML(data.children, 1) + '</li></ul>';
+
+    /* شريط عدد الأفكار على الجذر — يعين على تقدير حجم الباب */
+    var total = countNodes(data) - 1;
+    var rootNode = host.querySelector(':scope > ul > li > .tree__node');
+    if (rootNode && total > 0) {
+      var chip = document.createElement('span');
+      chip.className = 'tree__count';
+      chip.title = 'عدد الأفكار في الخريطة';
+      chip.textContent = arNum(total) + ' فكرة';
+      rootNode.appendChild(chip);
+    }
+
+    /* على الشاشات الصغيرة: اطوِ الأعماق فيبقى الجذر والأغصان الرئيسية */
+    if (window.matchMedia && matchMedia('(max-width: 700px)').matches) {
+      host.querySelectorAll('li.d2, li.d3, li.d4, li.d5').forEach(function (li) {
+        if (!li.querySelector(':scope > .tree__node.has-children')) return;
+        li.classList.add('is-collapsed');
+        var c = li.querySelector(':scope > .tree__node > .tree__caret');
+        if (c) c.setAttribute('aria-expanded', 'false');
+      });
+    }
+  }
+
+  /* --- محرك Mermaid الاختياري (تراجع تلقائي للمحرك الأصيل) --- */
   function mermaidSyntax(data) {
-    var out = ['flowchart TD'], seq = 0;
+    var out = ['flowchart TD'], s = 0;
     (function walk(n, parent) {
-      var id = 'N' + (++seq);
+      var id = 'N' + (++s);
       var safe = String(n.label).replace(/"/g, "'");
       out.push('  ' + id + (n.href ? '["' + safe + '"]' : '("' + safe + '")'));
       if (parent) out.push('  ' + parent + ' --> ' + id);
@@ -74,6 +110,7 @@
     setTimeout(function () { if (!ok) { ok = true; renderTree(data, host); } }, 5000);
   }
 
+  /* --- بناء كل المشجرات في الصفحة --- */
   document.querySelectorAll('script[type="application/json"][data-tree]').forEach(function (s) {
     var data;
     try { data = JSON.parse(s.textContent); } catch (e) { return; }
@@ -83,6 +120,7 @@
     renderTree(data, host);
   });
 
+  /* --- تفاعلات --- */
   document.addEventListener('click', function (e) {
     if (!e.target.closest) return;
     var caret = e.target.closest('.tree__caret');
@@ -98,8 +136,8 @@
       var fig = act.closest('.tree-figure');
       if (!fig) return;
       var collapse = act.getAttribute('data-tree-action') === 'collapse';
+      /* الطي الكامل يُبقي الجذر وحده — وتوسيع الكل يفتح كل شيء */
       fig.querySelectorAll('.tree li').forEach(function (li) {
-        if (li.querySelector(':scope > .tree__node.t-root')) return;
         li.classList.toggle('is-collapsed', collapse);
         var c = li.querySelector(':scope > .tree__node > .tree__caret');
         if (c) c.setAttribute('aria-expanded', String(!collapse));
